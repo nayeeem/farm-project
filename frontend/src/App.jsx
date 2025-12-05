@@ -17,9 +17,30 @@ import CropPlanning from './components/CropPlanning';
 // const Inventory = () => <div className="animate-fade-in"><h2>Inventory</h2><p>Buy and sell items.</p></div>;
 // const Assets = () => <div className="animate-fade-in"><h2>Assets</h2><p>Manage farm assets.</p></div>;
 
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Users from './pages/Users';
+import { Navigate } from 'react-router-dom';
+
+// ... (imports remain the same)
+
+const ProtectedRoute = ({ children, roles }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <Navigate to="/login" />;
+  if (roles && !roles.includes(user.role)) return <Navigate to="/" />;
+
+  return children;
+};
+
 const Navbar = () => {
   const location = useLocation();
+  const { user, logout } = useAuth();
   const isActive = (path) => location.pathname === path ? 'nav-link active' : 'nav-link';
+
+  if (!user) return null;
 
   return (
     <nav className="navbar">
@@ -34,6 +55,8 @@ const Navbar = () => {
         <Link to="/crops" className={location.pathname === '/crops' ? 'active' : ''}>Crops</Link>
         <Link to="/inventory" className={location.pathname === '/inventory' ? 'active' : ''}>Inventory</Link>
         <Link to="/assets" className={isActive('/assets')}>Assets</Link>
+        {user.role === 'admin' && <Link to="/users" className={isActive('/users')}>Users</Link>}
+        <button onClick={logout} className="btn btn-secondary" style={{ marginLeft: '1rem', padding: '0.25rem 0.5rem', fontSize: '0.875rem' }}>Logout</button>
       </div>
     </nav>
   );
@@ -42,20 +65,25 @@ const Navbar = () => {
 function App() {
   return (
     <Router>
-      <div className="app">
-        <Navbar />
-        <main className="container">
-          <Routes>
-            <Route path="/" element={<Reports />} />
-            <Route path="/farmers" element={<FarmerList />} />
-            <Route path="/tasks" element={<TaskList />} />
-            <Route path="/lands" element={<LandManager />} />
-            <Route path="/crops" element={<CropPlanning />} />
-            <Route path="/inventory" element={<InventoryManager />} />
-            <Route path="/assets" element={<AssetManager />} />
-          </Routes>
-        </main>
-      </div>
+      <AuthProvider>
+        <div className="app">
+          <Navbar />
+          <main className="container">
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+              <Route path="/farmers" element={<ProtectedRoute><FarmerList /></ProtectedRoute>} />
+              <Route path="/tasks" element={<ProtectedRoute><TaskList /></ProtectedRoute>} />
+              <Route path="/lands" element={<ProtectedRoute><LandManager /></ProtectedRoute>} />
+              <Route path="/crops" element={<ProtectedRoute><CropPlanning /></ProtectedRoute>} />
+              <Route path="/inventory" element={<ProtectedRoute><InventoryManager /></ProtectedRoute>} />
+              <Route path="/assets" element={<ProtectedRoute><AssetManager /></ProtectedRoute>} />
+              <Route path="/users" element={<ProtectedRoute roles={['admin']}><Users /></ProtectedRoute>} />
+            </Routes>
+          </main>
+        </div>
+      </AuthProvider>
     </Router>
   );
 }

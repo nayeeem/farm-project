@@ -79,3 +79,11 @@ class Crop(Base):
     notes = Column(String, nullable=True)
     
     land = relationship("Land", back_populates="crops")
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    role = Column(String, default="farmer") # admin, manager, farmer
+    is_active = Column(Boolean, default=True)

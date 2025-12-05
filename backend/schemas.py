@@ -134,3 +134,32 @@ class Crop(CropBase):
     actual_yield: Optional[float] = None
     class Config:
         from_attributes = True
+
+# User Schemas
+class UserBase(BaseModel):
+    username: str
+    role: Optional[str] = "farmer"
+    is_active: Optional[bool] = True
+
+class UserCreate(UserBase):
+    password: str
+
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    password: Optional[str] = None
+    role: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class User(UserBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+# Token Schemas
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+    role: Optional[str] = None
