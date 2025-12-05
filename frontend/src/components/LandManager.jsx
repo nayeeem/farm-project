@@ -86,15 +86,6 @@ const LandManager = () => {
         }
     };
 
-    const handleAssignFarmer = async (landId, farmerId) => {
-        try {
-            await api.put(`/lands/${landId}/assign/${farmerId}`);
-            fetchLands();
-        } catch (error) {
-            console.error('Error assigning farmer:', error);
-        }
-    };
-
     const getFarmerName = (farmerId) => {
         const farmer = farmers.find(f => f.id === farmerId);
         return farmer ? farmer.name : 'Unassigned';
@@ -116,10 +107,12 @@ const LandManager = () => {
             </div>
 
             {isFormOpen && (
-                <div className="card" style={{ marginBottom: '1.5rem' }}>
-                    <h3>{editingLand ? 'Edit Land' : 'Add New Land'}</h3>
+                <div className="card" style={{ marginBottom: '1.5rem', maxWidth: '800px', marginLeft: 'auto', marginRight: 'auto' }}>
+                    <h3 style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--card-border)', paddingBottom: '0.5rem' }}>
+                        {editingLand ? 'Edit Land' : 'Add New Land'}
+                    </h3>
                     <form onSubmit={handleSubmit}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '0.5rem' }}>Land Name</label>
                                 <input
@@ -184,10 +177,7 @@ const LandManager = () => {
                                 </select>
                             </div>
                         </div>
-                        <div style={{ display: 'flex', gap: '1rem' }}>
-                            <button type="submit" className="btn btn-primary">
-                                {editingLand ? 'Update' : 'Create'}
-                            </button>
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                             <button
                                 type="button"
                                 className="btn btn-secondary"
@@ -198,107 +188,77 @@ const LandManager = () => {
                             >
                                 Cancel
                             </button>
+                            <button type="submit" className="btn btn-primary">
+                                {editingLand ? 'Update Land' : 'Create Land'}
+                            </button>
                         </div>
                     </form>
                 </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
-                {lands.map((land) => (
-                    <div
-                        key={land.id}
-                        className="card"
-                        style={{
-                            position: 'relative',
-                            transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-4px)';
-                            e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.2)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
-                        }}
-                    >
-                        <div style={{ fontSize: '3rem', textAlign: 'center', marginBottom: '1rem' }}>
-                            🌾
-                        </div>
-                        <h3 style={{ marginBottom: '0.5rem', textAlign: 'center' }}>{land.name}</h3>
-                        <div style={{ marginBottom: '1rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                <span style={{ color: '#94a3b8' }}>Location:</span>
-                                <span style={{ fontWeight: '600' }}>{land.location}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                <span style={{ color: '#94a3b8' }}>Size:</span>
-                                <span style={{ fontWeight: '600' }}>{land.size} acres</span>
-                            </div>
-                            {land.soil_type && (
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                    <span style={{ color: '#94a3b8' }}>Soil Type:</span>
-                                    <span style={{ fontWeight: '600' }}>{land.soil_type}</span>
-                                </div>
-                            )}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                <span style={{ color: '#94a3b8' }}>Annual Tax:</span>
-                                <span style={{ fontWeight: '600', color: 'var(--accent-color)' }}>${land.tax_amount?.toFixed(2) || '0.00'}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                                <span style={{ color: '#94a3b8' }}>Assigned to:</span>
-                                <span style={{
-                                    fontWeight: '600',
-                                    color: land.farmer_id ? 'var(--secondary-color)' : '#94a3b8'
-                                }}>
-                                    {getFarmerName(land.farmer_id)}
-                                </span>
-                            </div>
-
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8' }}>
-                                    Reassign Farmer:
-                                </label>
-                                <select
-                                    value={land.farmer_id || ''}
-                                    onChange={(e) => handleAssignFarmer(land.id, e.target.value)}
-                                    style={{ width: '100%' }}
-                                >
-                                    <option value="">Unassigned</option>
-                                    {farmers.map((farmer) => (
-                                        <option key={farmer.id} value={farmer.id}>
-                                            {farmer.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button
-                                className="btn btn-secondary"
-                                style={{ flex: 1 }}
-                                onClick={() => handleEdit(land)}
-                            >
-                                Edit
-                            </button>
-                            <button
-                                className="btn btn-danger"
-                                style={{ flex: 1 }}
-                                onClick={() => handleDelete(land.id)}
-                            >
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                ))}
+            <div className="card" style={{ overflowX: 'auto' }}>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Location</th>
+                            <th>Size (Acres)</th>
+                            <th>Soil Type</th>
+                            <th>Annual Tax</th>
+                            <th>Assigned To</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {lands.length === 0 ? (
+                            <tr>
+                                <td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+                                    No lands found. Add your first land to get started.
+                                </td>
+                            </tr>
+                        ) : (
+                            lands.map((land) => (
+                                <tr key={land.id}>
+                                    <td style={{ fontWeight: 500 }}>{land.name}</td>
+                                    <td>{land.location}</td>
+                                    <td>{land.size}</td>
+                                    <td>{land.soil_type || '-'}</td>
+                                    <td>${land.tax_amount?.toFixed(2) || '0.00'}</td>
+                                    <td>
+                                        <span className={land.farmer_id ? 'badge-success' : 'badge-neutral'} style={{
+                                            padding: '0.25rem 0.5rem',
+                                            borderRadius: '9999px',
+                                            fontSize: '0.75rem',
+                                            backgroundColor: land.farmer_id ? 'rgba(16, 185, 129, 0.2)' : 'rgba(148, 163, 184, 0.2)',
+                                            color: land.farmer_id ? '#34d399' : '#cbd5e1'
+                                        }}>
+                                            {getFarmerName(land.farmer_id)}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <button
+                                                className="btn btn-secondary"
+                                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.875rem' }}
+                                                onClick={() => handleEdit(land)}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                className="btn btn-danger"
+                                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.875rem' }}
+                                                onClick={() => handleDelete(land.id)}
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
             </div>
-
-            {lands.length === 0 && !isFormOpen && (
-                <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
-                    <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🌾</div>
-                    <p style={{ color: '#94a3b8', fontSize: '1.125rem' }}>No lands found. Add your first land above!</p>
-                </div>
-            )}
         </div>
     );
 };
